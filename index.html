@@ -275,47 +275,36 @@
         <div class="admin-section">
             <h2>管理員區塊</h2>
             <div class="instructions">
-                <p><strong>自動上傳：</strong>請直接選擇圖片，系統會在背景自動上傳並顯示菜單。</p>
-                <p><strong>手動網址：</strong>若自動上傳失敗，您也可以手動貼上已知的圖片網址。</p>
+                <p><strong>上傳菜單：</strong>請直接選擇圖片，系統會在背景自動上傳並顯示菜單。重複上傳會覆蓋舊圖。</p>
             </div>
 
             <fieldset style="border: 1px solid var(--border-color); border-radius: 5px; padding: 15px; margin-bottom: 10px;">
-                <legend style="font-weight: bold;">菜單正面</legend>
-                <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                <legend style="font-weight: bold;">上傳菜單1</legend>
+                <div style="display: flex; align-items: center;">
                     <input type="file" id="menu-image-input-front" accept="image/*" onchange="handleImageUpload(event, 'front')" style="margin-bottom: 0; flex: 1;">
                     <span id="upload-status-front" style="color: var(--accent-color); margin-left: 10px; white-space: nowrap;"></span>
-                </div>
-                <div style="display: flex; gap: 5px;">
-                    <input type="text" id="menu-image-url-front" placeholder="正面圖片網址" style="margin-bottom: 0;">
-                    <button id="btn-update-front" onclick="updateMenuSide('front', this)" style="white-space: nowrap;">更新網址</button>
                 </div>
             </fieldset>
 
             <fieldset style="border: 1px solid var(--border-color); border-radius: 5px; padding: 15px; margin-bottom: 10px;">
-                <legend style="font-weight: bold;">菜單反面</legend>
-                <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                <legend style="font-weight: bold;">上傳菜單2</legend>
+                <div style="display: flex; align-items: center;">
                     <input type="file" id="menu-image-input-back" accept="image/*" onchange="handleImageUpload(event, 'back')" style="margin-bottom: 0; flex: 1;">
                     <span id="upload-status-back" style="color: var(--accent-color); margin-left: 10px; white-space: nowrap;"></span>
                 </div>
-                <div style="display: flex; gap: 5px;">
-                    <input type="text" id="menu-image-url-back" placeholder="反面圖片網址" style="margin-bottom: 0;">
-                    <button id="btn-update-back" onclick="updateMenuSide('back', this)" style="white-space: nowrap;">更新網址</button>
-                </div>
             </fieldset>
-            <button class="danger" onclick="clearOrders()">清除今日訂單</button>
-            <button class="danger" onclick="clearAllData()">清除所有資料(含菜單)</button>
         </div>
 
         <div id="menu-image-container" style="text-align: center; margin-bottom: 30px; display: none;">
             <h2>今日菜單</h2>
             <div style="display: flex; gap: 15px; flex-wrap: wrap; justify-content: center;">
                 <div id="menu-front-wrapper" style="flex: 1; min-width: 280px; display: none;">
-                    <p style="font-weight: bold; margin-bottom: 5px;">正面</p>
-                    <img id="menu-image-front" src="" alt="菜單正面" style="max-width: 100%; border: 1px solid var(--border-color); border-radius: 5px;">
+                    <p style="font-weight: bold; margin-bottom: 5px;">菜單1</p>
+                    <img id="menu-image-front" src="" alt="菜單1" style="max-width: 100%; border: 1px solid var(--border-color); border-radius: 5px;">
                 </div>
                 <div id="menu-back-wrapper" style="flex: 1; min-width: 280px; display: none;">
-                    <p style="font-weight: bold; margin-bottom: 5px;">反面</p>
-                    <img id="menu-image-back" src="" alt="菜單反面" style="max-width: 100%; border: 1px solid var(--border-color); border-radius: 5px;">
+                    <p style="font-weight: bold; margin-bottom: 5px;">菜單2</p>
+                    <img id="menu-image-back" src="" alt="菜單2" style="max-width: 100%; border: 1px solid var(--border-color); border-radius: 5px;">
                 </div>
             </div>
         </div>
@@ -410,7 +399,6 @@
             const isFuture = currentDate > today;
             const banner = document.getElementById('past-date-banner');
             const orderSection = document.querySelector('.order-section');
-            const clearBtn = document.querySelector('button[onclick="clearOrders()"]');
 
             // 過去日期：唯讀，顯示歷史提示；今天/未來：可訂餐
             if (isPast) {
@@ -424,7 +412,6 @@
             }
 
             orderSection.style.display = isPast ? 'none' : 'block';
-            if (clearBtn) clearBtn.style.display = isPast ? 'none' : 'inline-block';
         }
 
         function changeDate(delta) {
@@ -557,52 +544,6 @@
             }
         }
 
-        async function updateMenuSide(side, btn) {
-            const pwd = prompt('請輸入管理員密碼：');
-            if (pwd !== '10') {
-                alert('密碼錯誤');
-                return;
-            }
-
-            const urlInput = document.getElementById('menu-image-url-' + side);
-            const url = urlInput.value.trim();
-            if (!url) {
-                alert('請貼上圖片網址！');
-                return;
-            }
-
-            btn.disabled = true;
-            btn.textContent = '更新中...';
-            await sendCommand('updateMenu', { url: url, side: side });
-            btn.disabled = false;
-            btn.textContent = '更新網址';
-            alert('菜單圖片已更新！');
-        }
-
-        async function clearOrders() {
-            const pwd = prompt('請輸入管理員密碼：');
-            if (pwd !== '10') {
-                alert('密碼錯誤');
-                return;
-            }
-
-            if (confirm('確定要清除所有訂單嗎？這個動作無法復原。')) {
-                await sendCommand('clearOrders', {});
-            }
-        }
-
-        async function clearAllData() {
-            const pwd = prompt('請輸入管理員密碼：');
-            if (pwd !== '10') {
-                alert('密碼錯誤');
-                return;
-            }
-
-            if (confirm('警告：這會清除菜單和所有訂單！確定嗎？')) {
-                await sendCommand('clearAll', {});
-            }
-        }
-
         function populateEmployeeList() {
             const userSelect = document.getElementById('user-select');
             userSelect.innerHTML = '<option value="">-- 請選擇姓名 --</option>';
@@ -709,11 +650,9 @@
 
             frontWrapper.style.display = hasFront ? 'block' : 'none';
             frontImg.src = hasFront ? menuImageUrlFront : '';
-            document.getElementById('menu-image-url-front').value = menuImageUrlFront || '';
 
             backWrapper.style.display = hasBack ? 'block' : 'none';
             backImg.src = hasBack ? menuImageUrlBack : '';
-            document.getElementById('menu-image-url-back').value = menuImageUrlBack || '';
         }
 
         function renderOrders() {
