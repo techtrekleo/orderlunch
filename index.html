@@ -405,14 +405,26 @@
             const picker = document.getElementById('date-picker');
             picker.value = currentDate;
 
-            const isToday = currentDate === getTodayString();
+            const today = getTodayString();
+            const isPast = currentDate < today;   // YYYY-MM-DD 字串可直接比較大小
+            const isFuture = currentDate > today;
             const banner = document.getElementById('past-date-banner');
             const orderSection = document.querySelector('.order-section');
             const clearBtn = document.querySelector('button[onclick="clearOrders()"]');
 
-            banner.style.display = isToday ? 'none' : 'block';
-            orderSection.style.display = isToday ? 'block' : 'none';
-            if (clearBtn) clearBtn.style.display = isToday ? 'inline-block' : 'none';
+            // 過去日期：唯讀，顯示歷史提示；今天/未來：可訂餐
+            if (isPast) {
+                banner.style.display = 'block';
+                banner.innerHTML = '📅 目前查看的是歷史訂單，如需下訂請切換回今天或未來日期。';
+            } else if (isFuture) {
+                banner.style.display = 'block';
+                banner.innerHTML = '📆 您正在預訂未來日期的餐點。';
+            } else {
+                banner.style.display = 'none';
+            }
+
+            orderSection.style.display = isPast ? 'none' : 'block';
+            if (clearBtn) clearBtn.style.display = isPast ? 'none' : 'inline-block';
         }
 
         function changeDate(delta) {
