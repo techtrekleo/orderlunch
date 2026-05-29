@@ -493,6 +493,8 @@
             try {
                 await fetch(SCRIPT_URL, {
                     method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'text/plain' },
                     body: JSON.stringify({ action, data, date: currentDate })
                 });
                 await fetchAllData(); // 操作完成後重新讀取最新資料
