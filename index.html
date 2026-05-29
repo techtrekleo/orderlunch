@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>午餐訂購系統</title>
+    <style>
+        :root {
+            --bg-color: #f8f9fa;
+            --text-color: #212529;
+            --card-bg: #ffffff;
+            --border-color: #dee2e6;
+            --accent-color: #007bff;
+            --accent-color-hover: #0056b3;
+            --danger-color: #dc3545;
+            --danger-color-hover: #c82333;
+        }
+        body {
+            font-family: "微軟正黑體", "Microsoft JhengHei", sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 900px;
+            margin: auto;
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        h1, h2 {
+            color: var(--accent-color);
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 10px;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+        h1 {
+            text-align: center;
+            font-size: 2rem;
+        }
+        .admin-section, .order-section, .summary-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+        }
+        textarea, input, select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            box-sizing: border-box;
+            font-family: inherit;
+            font-size: 1rem;
+        }
+        textarea {
+            height: 120px;
+            resize: vertical;
+        }
+        button {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 1rem;
+            transition: background 0.2s;
+            margin-right: 5px;
+        }
+        button:hover {
+            background: var(--accent-color-hover);
+        }
+        button.danger {
+            background: var(--danger-color);
+        }
+        button.danger:hover {
+            background: var(--danger-color-hover);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid var(--border-color);
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        #total-summary {
+            margin-top: 20px;
+            padding: 20px;
+            background: #e9ecef;
+            border-radius: 5px;
+            text-align: right;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        .menu-item {
+            display: inline-block;
+            background: #e9ecef;
+            padding: 5px 10px;
+            margin: 5px;
+            border-radius: 15px;
+            font-size: 0.9rem;
+        }
+        .instructions {
+            background-color: #fff3cd;
+            color: #664d03;
+            border: 1px solid #ffecb5;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        /* 讓 datalist 的建議清單更明顯 */
+        input[list] {
+            position: relative;
+        }
+        /* 讓 select 和 input 高度一致 */
+        select {
+            height: 40px; /* 根據 padding 和 border 調整 */
+        }
+        /* 讓 h2 標題之間有更多空間 */
+        .summary-section h2 {
+            margin-top: 40px;
+            font-size: 1.5rem;
+        }
+        /* 新增：手機版快捷按鈕與單選項的樣式 */
+        .radio-group {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .radio-group label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+            font-weight: normal;
+        }
+        .radio-group input[type="radio"] {
+            width: auto;
+            margin: 0;
+            transform: scale(1.2);
+        }
+        .chip {
+            display: inline-block;
+            background: #e9ecef;
+            padding: 8px 15px;
+            margin: 0 5px 10px 0;
+            border-radius: 20px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            border: 1px solid var(--border-color);
+            transition: all 0.2s;
+        }
+        .chip:hover {
+            background: var(--accent-color);
+            color: white;
+            border-color: var(--accent-color);
+        }
+        /* 日期切換列 */
+        .date-nav {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding: 12px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+        }
+        .date-nav button {
+            padding: 6px 14px;
+            font-size: 1.1rem;
+            margin: 0;
+        }
+        .date-nav input[type="date"] {
+            width: auto;
+            margin: 0;
+            font-size: 1rem;
+            padding: 6px 10px;
+            text-align: center;
+        }
+        .date-nav .today-btn {
+            font-size: 0.85rem;
+            padding: 6px 12px;
+            background: #6c757d;
+        }
+        .date-nav .today-btn:hover {
+            background: #545b62;
+        }
+        /* 查看歷史日期時的提示橫幅 */
+        .past-date-banner {
+            display: none;
+            background: #fff3cd;
+            color: #664d03;
+            border: 1px solid #ffecb5;
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            text-align: center;
+            font-weight: bold;
+        }
+        /* 個人繳費列 */
+        .payment-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 6px 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .payment-row:last-child {
+            border-bottom: none;
+        }
+        .payment-row label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            flex: 1;
+            font-weight: normal;
+        }
+        .payment-row input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            margin: 0;
+            flex-shrink: 0;
+            cursor: pointer;
+            accent-color: #28a745;
+        }
+        .payment-row.paid .person-info {
+            text-decoration: line-through;
+            color: #6c757d;
+        }
+        .paid-badge {
+            display: none;
+            background: #28a745;
+            color: white;
+            font-size: 0.75rem;
+            padding: 2px 8px;
+            border-radius: 10px;
+            white-space: nowrap;
+        }
+        .payment-row.paid .paid-badge {
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>午餐訂購系統</h1>
+
+        <!-- 日期切換列 -->
+        <div class="date-nav">
+            <button onclick="changeDate(-1)">&#8592; 前一天</button>
+            <input type="date" id="date-picker" onchange="onDatePickerChange()">
+            <button onclick="changeDate(1)">後一天 &#8594;</button>
+            <button class="today-btn" onclick="goToToday()">今天</button>
+        </div>
+        <div class="past-date-banner" id="past-date-banner">
+            📅 目前查看的是歷史訂單，如需下訂請切換回今天。
+        </div>
+
+        <div class="admin-section">
+            <h2>管理員區塊</h2>
+            <div class="instructions">
+                <p><strong>自動上傳：</strong>請直接選擇圖片，系統會在背景自動上傳並顯示菜單。</p>
+                <p><strong>手動網址：</strong>若自動上傳失敗，您也可以手動貼上已知的圖片網址。</p>
+            </div>
+
+            <fieldset style="border: 1px solid var(--border-color); border-radius: 5px; padding: 15px; margin-bottom: 10px;">
+                <legend style="font-weight: bold;">菜單正面</legend>
+                <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                    <input type="file" id="menu-image-input-front" accept="image/*" onchange="handleImageUpload(event, 'front')" style="margin-bottom: 0; flex: 1;">
+                    <span id="upload-status-front" style="color: var(--accent-color); margin-left: 10px; white-space: nowrap;"></span>
+                </div>
+                <div style="display: flex; gap: 5px;">
+                    <input type="text" id="menu-image-url-front" placeholder="正面圖片網址" style="margin-bottom: 0;">
+                    <button id="btn-update-front" onclick="updateMenuSide('front', this)" style="white-space: nowrap;">更新網址</button>
+                </div>
+            </fieldset>
+
+            <fieldset style="border: 1px solid var(--border-color); border-radius: 5px; padding: 15px; margin-bottom: 10px;">
+                <legend style="font-weight: bold;">菜單反面</legend>
+                <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                    <input type="file" id="menu-image-input-back" accept="image/*" onchange="handleImageUpload(event, 'back')" style="margin-bottom: 0; flex: 1;">
+                    <span id="upload-status-back" style="color: var(--accent-color); margin-left: 10px; white-space: nowrap;"></span>
+                </div>
+                <div style="display: flex; gap: 5px;">
+                    <input type="text" id="menu-image-url-back" placeholder="反面圖片網址" style="margin-bottom: 0;">
+                    <button id="btn-update-back" onclick="updateMenuSide('back', this)" style="white-space: nowrap;">更新網址</button>
+                </div>
+            </fieldset>
+            <button class="danger" onclick="clearOrders()">清除今日訂單</button>
+            <button class="danger" onclick="clearAllData()">清除所有資料(含菜單)</button>
+        </div>
+
+        <div id="menu-image-container" style="text-align: center; margin-bottom: 30px; display: none;">
+            <h2>今日菜單</h2>
+            <div style="display: flex; gap: 15px; flex-wrap: wrap; justify-content: center;">
+                <div id="menu-front-wrapper" style="flex: 1; min-width: 280px; display: none;">
+                    <p style="font-weight: bold; margin-bottom: 5px;">正面</p>
+                    <img id="menu-image-front" src="" alt="菜單正面" style="max-width: 100%; border: 1px solid var(--border-color); border-radius: 5px;">
+                </div>
+                <div id="menu-back-wrapper" style="flex: 1; min-width: 280px; display: none;">
+                    <p style="font-weight: bold; margin-bottom: 5px;">反面</p>
+                    <img id="menu-image-back" src="" alt="菜單反面" style="max-width: 100%; border: 1px solid var(--border-color); border-radius: 5px;">
+                </div>
+            </div>
+        </div>
+
+        <div class="order-section">
+            <h2>我要訂餐</h2>
+            <label for="user-name">您的姓名：</label>
+            <select id="user-select">
+                <!-- 員工名單會由 JS 動態載入 -->
+            </select>
+            
+            <label for="item-name">想吃的餐點：</label>
+            <div id="meal-chips"></div> <!-- 手機版快捷按鈕會顯示在這裡 -->
+            <input type="text" id="item-name" list="meal-list" placeholder="請點選上方按鈕或自行輸入">
+            <datalist id="meal-list"></datalist>
+            
+            <label>飯量調整 (非必選)：</label>
+            <div class="radio-group">
+                <label><input type="radio" name="rice-portion" value="正常"> 正常</label>
+                <label><input type="radio" name="rice-portion" value="少飯"> 少飯</label>
+            </div>
+
+            <label for="item-remark">備註 (非必選)：</label>
+            <input type="text" id="item-remark" placeholder="如：加辣、不要蔥">
+
+            <label for="item-price">價格：</label>
+            <input type="number" id="item-price" placeholder="請填寫餐點價格" min="0">
+            
+            <button onclick="addOrder()">下訂單</button>
+        </div>
+
+        <div class="summary-section">
+            <h2>訂單總覽</h2>
+            <table id="order-table">
+                <thead>
+                    <tr>
+                        <th>姓名</th>
+                        <th>餐點</th>
+                        <th>價格</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="order-list">
+                    <!-- 訂單會顯示在這裡 -->
+                </tbody>
+            </table>
+
+            <h2 style="border-top: 2px solid var(--border-color); padding-top: 20px;">餐點統計</h2>
+            <table id="meal-summary-table">
+                <thead>
+                    <tr>
+                        <th>餐點</th>
+                        <th>份數</th>
+                    </tr>
+                </thead>
+                <tbody id="meal-summary-body">
+                    <!-- 餐點統計會顯示在這裡 -->
+                </tbody>
+            </table>
+            <div id="total-summary">
+                <p>個人應付金額：</p>
+                <div id="personal-totals"></div>
+                <hr>
+                <p>總計金額： <span id="grand-total">0</span> 元</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 替換為你的 Google Apps Script 部署網址 ---
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzZ9jNk8UrXT7R5AfD4IdGnAy5IUoEFDJAEEtx8gKsxLAD1b93RIIuODbgh9JiZz_9syg/exec';
+        const IMGBB_API_KEY = '1d26bf0023e3fb092ef36c37e36c5b54';
+
+        // --- 日期管理 ---
+
+        function getTodayString() {
+            const now = new Date();
+            const y = now.getFullYear();
+            const m = String(now.getMonth() + 1).padStart(2, '0');
+            const d = String(now.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
+        }
+
+        let currentDate = getTodayString();
+
+        function updateDateUI() {
+            const picker = document.getElementById('date-picker');
+            picker.value = currentDate;
+
+            const isToday = currentDate === getTodayString();
+            const banner = document.getElementById('past-date-banner');
+            const orderSection = document.querySelector('.order-section');
+            const clearBtn = document.querySelector('button[onclick="clearOrders()"]');
+
+            banner.style.display = isToday ? 'none' : 'block';
+            orderSection.style.display = isToday ? 'block' : 'none';
+            if (clearBtn) clearBtn.style.display = isToday ? 'inline-block' : 'none';
+        }
+
+        function changeDate(delta) {
+            const d = new Date(currentDate + 'T00:00:00');
+            d.setDate(d.getDate() + delta);
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            currentDate = `${y}-${m}-${day}`;
+            updateDateUI();
+            fetchAllData();
+        }
+
+        function onDatePickerChange() {
+            const picker = document.getElementById('date-picker');
+            if (picker.value) {
+                currentDate = picker.value;
+                updateDateUI();
+                fetchAllData();
+            }
+        }
+
+        function goToToday() {
+            currentDate = getTodayString();
+            updateDateUI();
+            fetchAllData();
+        }
+
+        // 頁面載入時，初始化系統
+        window.onload = function() {
+            populateEmployeeList();
+            updateDateUI();
+            if (SCRIPT_URL === '請在這裡貼上你的_Web_App_URL') {
+                alert('請先在程式碼中設定 SCRIPT_URL (Google Apps Script 網址)，系統才能運作！');
+                return;
+            }
+            fetchAllData();
+        };
+
+        // --- 資料管理 (連線至 Google Sheets) ---
+
+        const employeeList = [
+            "羅友志老師", "詹永任老師", "張瑋珊助教", "楊文華",
+            "王少甫", "歐陽伯彥", "陳詩婷", "余曉清", "張鎧麟", "許鎧亘", "林穎立", "楊詒鈞",
+            "張祐寧", "莊郁惠", "陳佳姿", "莊媛淅", "黃子榕", "詹卉郁", "簡正翔", "藍曉琪",
+            "何佳如", "賴語宸", "王毓玲", "鄭家迪", "廖玉娜", "廖美娜", "張晶晶", "張庭芸", "林雨璇"
+        ];
+
+        let menuImageUrlFront = null;
+        let menuImageUrlBack = null;
+        let orders = []; // { id: 123, name: '王大明', itemName: '排骨飯', price: 100 }
+
+        // 讀取所有資料 (GET)
+        async function fetchAllData() {
+            const orderList = document.getElementById('order-list');
+            orderList.innerHTML = '<tr><td colspan="4" style="text-align: center;">資料同步中，請稍候...</td></tr>';
+
+            try {
+                const response = await fetch(SCRIPT_URL + '?action=getData&date=' + currentDate);
+                const data = await response.json();
+                menuImageUrlFront = data.menuImageUrlFront || data.menuImageUrl || null;
+                menuImageUrlBack = data.menuImageUrlBack || null;
+                orders = data.orders || [];
+                renderMenuImage();
+                renderOrders();
+            } catch (error) {
+                console.error('Fetch error:', error);
+                let errorMsg = '讀取失敗，請檢查網路或 API 網址是否正確。';
+                if (error.name === 'SyntaxError') {
+                    errorMsg += '<br><small style="color: #666;">錯誤原因：API 回傳了非預期的格式。<br>請確認您的 Google Apps Script 部署時，<strong>「誰可以存取 (Who has access)」是否設定為「所有人 (Anyone)」</strong>。</small>';
+                }
+                orderList.innerHTML = `<tr><td colspan="4" style="text-align: center; color: red;">${errorMsg}</td></tr>`;
+            }
+        }
+
+        // 發送指令至後端 (POST)
+        async function sendCommand(action, data) {
+            try {
+                await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action, data, date: currentDate })
+                });
+                await fetchAllData(); // 操作完成後重新讀取最新資料
+            } catch (error) {
+                console.error('Command error:', error);
+                alert('資料同步失敗，請檢查網路連線！');
+            }
+        }
+
+        // --- 管理員功能 ---
+
+        async function handleImageUpload(event, side) {
+            const pwd = prompt('請輸入管理員密碼：');
+            if (pwd !== '10') {
+                alert('密碼錯誤');
+                event.target.value = '';
+                return;
+            }
+
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const uploadStatus = document.getElementById('upload-status-' + side);
+            uploadStatus.textContent = '上傳中，請稍候...';
+
+            const formData = new FormData();
+            formData.append('image', file);
+
+            try {
+                const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    const imageUrl = data.data.url;
+                    uploadStatus.textContent = '圖片上傳成功，同步至試算表...';
+                    await sendCommand('updateMenu', { url: imageUrl, side: side });
+                    uploadStatus.textContent = '菜單已全面同步！';
+                } else {
+                    uploadStatus.textContent = '上傳失敗';
+                    alert('圖片上傳失敗：' + data.error.message);
+                }
+            } catch (error) {
+                uploadStatus.textContent = '上傳錯誤';
+                console.error('Upload Error:', error);
+                alert('上傳發生錯誤，請檢查網路連線。');
+            }
+        }
+
+        async function updateMenuSide(side, btn) {
+            const pwd = prompt('請輸入管理員密碼：');
+            if (pwd !== '10') {
+                alert('密碼錯誤');
+                return;
+            }
+
+            const urlInput = document.getElementById('menu-image-url-' + side);
+            const url = urlInput.value.trim();
+            if (!url) {
+                alert('請貼上圖片網址！');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = '更新中...';
+            await sendCommand('updateMenu', { url: url, side: side });
+            btn.disabled = false;
+            btn.textContent = '更新網址';
+            alert('菜單圖片已更新！');
+        }
+
+        async function clearOrders() {
+            const pwd = prompt('請輸入管理員密碼：');
+            if (pwd !== '10') {
+                alert('密碼錯誤');
+                return;
+            }
+
+            if (confirm('確定要清除所有訂單嗎？這個動作無法復原。')) {
+                await sendCommand('clearOrders', {});
+            }
+        }
+
+        async function clearAllData() {
+            const pwd = prompt('請輸入管理員密碼：');
+            if (pwd !== '10') {
+                alert('密碼錯誤');
+                return;
+            }
+
+            if (confirm('警告：這會清除菜單和所有訂單！確定嗎？')) {
+                await sendCommand('clearAll', {});
+            }
+        }
+
+        function populateEmployeeList() {
+            const userSelect = document.getElementById('user-select');
+            userSelect.innerHTML = '<option value="">-- 請選擇姓名 --</option>';
+            employeeList.forEach(name => {
+                const option = document.createElement('option');
+                option.value = name;
+                option.textContent = name;
+                userSelect.appendChild(option);
+            });
+        }
+
+        // --- 使用者功能 ---
+
+        async function addOrder() {
+            const userName = document.getElementById('user-select').value;
+            const itemName = document.getElementById('item-name').value.trim();
+            const ricePortion = document.querySelector('input[name="rice-portion"]:checked');
+            const itemRemark = document.getElementById('item-remark').value.trim();
+            const itemPriceInput = document.getElementById('item-price').value.trim();
+            const itemPrice = parseInt(itemPriceInput, 10);
+
+            if (!userName) {
+                alert('請選擇您的姓名！');
+                return;
+            }
+
+            if (!itemName) {
+                alert('請輸入想吃的餐點名稱！');
+                return;
+            }
+
+            if (itemPriceInput === '' || isNaN(itemPrice) || itemPrice < 0) { // Allow 0 price
+                alert('請輸入正確的價格！');
+                return;
+            }
+
+            // 將飯量和備註組合進餐點名稱，免改後端欄位
+            let finalItemName = itemName;
+            if (ricePortion && ricePortion.value !== '正常') {
+                finalItemName += ` (${ricePortion.value})`;
+            }
+            if (itemRemark) {
+                finalItemName += ` [${itemRemark}]`;
+            }
+
+            const newOrder = {
+                id: Date.now().toString(), // 使用時間戳作為唯一ID
+                name: userName,
+                itemName: finalItemName,
+                price: itemPrice
+            };
+
+            const btn = document.querySelector('button[onclick="addOrder()"]');
+            btn.disabled = true;
+            btn.textContent = '送出中...';
+            await sendCommand('addOrder', newOrder);
+            btn.disabled = false;
+            btn.textContent = '下訂單';
+
+            // 清空餐點相關欄位方便下一位同事填寫，保留姓名
+            document.getElementById('item-name').value = '';
+            document.getElementById('item-price').value = '';
+            document.getElementById('item-remark').value = '';
+            if (ricePortion) ricePortion.checked = false;
+        }
+        
+        async function deleteOrder(orderId) {
+            const pwd = prompt('請輸入密碼：');
+            if (pwd !== '10') {
+                alert('請洽大姐刪除訂單');
+                return;
+            }
+
+            if (confirm('確定要刪除這筆訂單嗎？')) {
+                await sendCommand('deleteOrder', { id: orderId });
+            }
+        }
+
+        // --- 畫面渲染 ---
+
+        function togglePaid(name, checkbox) {
+            const storageKey = `paid_${currentDate}_${name}`;
+            const row = document.getElementById(`row-${name}`);
+            if (checkbox.checked) {
+                localStorage.setItem(storageKey, '1');
+                row.classList.add('paid');
+            } else {
+                localStorage.removeItem(storageKey);
+                row.classList.remove('paid');
+            }
+        }
+
+        function renderMenuImage() {
+            const container = document.getElementById('menu-image-container');
+            const frontWrapper = document.getElementById('menu-front-wrapper');
+            const backWrapper = document.getElementById('menu-back-wrapper');
+            const frontImg = document.getElementById('menu-image-front');
+            const backImg = document.getElementById('menu-image-back');
+
+            const hasFront = !!menuImageUrlFront;
+            const hasBack = !!menuImageUrlBack;
+
+            container.style.display = (hasFront || hasBack) ? 'block' : 'none';
+
+            frontWrapper.style.display = hasFront ? 'block' : 'none';
+            frontImg.src = hasFront ? menuImageUrlFront : '';
+            document.getElementById('menu-image-url-front').value = menuImageUrlFront || '';
+
+            backWrapper.style.display = hasBack ? 'block' : 'none';
+            backImg.src = hasBack ? menuImageUrlBack : '';
+            document.getElementById('menu-image-url-back').value = menuImageUrlBack || '';
+        }
+
+        function renderOrders() {
+            const orderList = document.getElementById('order-list');
+            const grandTotalEl = document.getElementById('grand-total');
+            const personalTotalsEl = document.getElementById('personal-totals');
+            const mealListDatalist = document.getElementById('meal-list');
+            const mealSummaryBody = document.getElementById('meal-summary-body');
+            const mealChipsContainer = document.getElementById('meal-chips');
+            
+            // 清空上次渲染的結果
+            orderList.innerHTML = '';
+            personalTotalsEl.innerHTML = '';
+            mealListDatalist.innerHTML = '';
+            mealSummaryBody.innerHTML = '';
+            if (mealChipsContainer) mealChipsContainer.innerHTML = '';
+
+            // 資料彙總
+            let grandTotal = 0;
+            const personalData = {};
+            const mealCounts = {};
+            const baseMeals = new Set();
+
+            // 遍歷所有訂單，渲染列表並計算統計資料
+            orders.forEach(order => {
+                // 渲染訂單列表
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${order.name || 'N/A'}</td>
+                    <td>${order.itemName || 'N/A'}</td>
+                    <td>${order.price || 0}</td>
+                    <td><button class="danger" onclick="deleteOrder('${order.id}')">刪除</button></td>
+                `;
+                orderList.appendChild(row);
+
+                // 彙總統計資料
+                grandTotal += order.price;
+                
+                if (!personalData[order.name]) {
+                    personalData[order.name] = { total: 0, items: [] };
+                }
+                personalData[order.name].total += order.price;
+                personalData[order.name].items.push(order.itemName);
+                
+                mealCounts[order.itemName] = (mealCounts[order.itemName] || 0) + 1;
+                
+                // 萃取原始餐點名稱 (移除括號後的備註)，用於快捷按鈕
+                let baseName = String(order.itemName || '');
+                baseName = baseName.split(' (')[0].split(' [')[0].trim();
+                if (baseName) {
+                    baseMeals.add(baseName);
+                }
+            });
+
+            // 渲染個人應付金額 (按照員工名單順序排列)
+            const renderPersonRow = (name) => {
+                const info = personalData[name];
+                const storageKey = `paid_${currentDate}_${name}`;
+                const isPaid = localStorage.getItem(storageKey) === '1';
+
+                const div = document.createElement('div');
+                div.className = 'payment-row' + (isPaid ? ' paid' : '');
+                div.id = `row-${name}`;
+
+                const checkId = `chk-${name.replace(/\s/g, '')}`;
+                div.innerHTML = `
+                    <label for="${checkId}">
+                        <input type="checkbox" id="${checkId}" ${isPaid ? 'checked' : ''} onchange="togglePaid('${name}', this)">
+                        <span class="person-info">${name}：${info.total} 元 (${info.items.join(' + ')})</span>
+                    </label>
+                    <span class="paid-badge">已繳費</span>
+                `;
+                personalTotalsEl.appendChild(div);
+            };
+
+            employeeList.forEach(name => {
+                if (personalData[name]) renderPersonRow(name);
+            });
+            // 處理名單外自行輸入或舊資料的名字
+            for (const name in personalData) {
+                if (!employeeList.includes(name)) renderPersonRow(name);
+            }
+
+            // 渲染餐點統計表
+            for (const mealName in mealCounts) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${mealName}</td>
+                    <td>${mealCounts[mealName]}</td>
+                `;
+                mealSummaryBody.appendChild(row);
+            }
+
+            // 更新餐點建議清單 (datalist 與 快捷按鈕)
+            baseMeals.forEach(mealName => {
+                // 給電腦版用的 datalist
+                const option = document.createElement('option');
+                option.value = mealName;
+                mealListDatalist.appendChild(option);
+
+                // 給手機版用的快捷按鈕 (Chips)
+                if (mealChipsContainer) {
+                    const chip = document.createElement('span');
+                    chip.className = 'chip';
+                    chip.textContent = mealName;
+                    chip.onclick = () => {
+                        document.getElementById('item-name').value = mealName;
+                        // 嘗試自動帶入該餐點最新的價格
+                        const previousOrder = [...orders].reverse().find(o => o.itemName && String(o.itemName).startsWith(mealName));
+                        if (previousOrder) {
+                            document.getElementById('item-price').value = previousOrder.price;
+                        }
+                    };
+                    mealChipsContainer.appendChild(chip);
+                }
+            });
+
+            // 更新總計金額
+            grandTotalEl.textContent = grandTotal;
+        }
+    </script>
+</body>
+</html>
