@@ -2,6 +2,20 @@
 // 每天的訂單存在各自的 Sheet (以日期命名，如 "2026-05-29")
 // 菜單圖片網址存在 "設定" Sheet
 
+// 你的 Google 試算表 ID（從試算表網址取得）
+// 網址格式：https://docs.google.com/spreadsheets/d/【這段就是ID】/edit
+const SPREADSHEET_ID = '1xVKp06mLHu50PppA8Baxm8c6uzyZ5dD52agCzYOw5Kc';
+
+function getSpreadsheet() {
+  return SpreadsheetApp.openById(SPREADSHEET_ID);
+}
+
+// 第一次使用前，在編輯器手動執行這個函式一次，跳出授權視窗後同意，即可解決權限問題
+function 授權用() {
+  const ss = getSpreadsheet();
+  Logger.log(ss.getName());
+}
+
 function doGet(e) {
   const action = e.parameter.action;
   const date = e.parameter.date;
@@ -45,7 +59,7 @@ function doPost(e) {
 
 // --- 取得指定日期的所有資料 ---
 function getData(date) {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = getSpreadsheet();
 
   // 讀取該日期的菜單圖片
   const settingsSheet = getOrCreateSettingsSheet(ss);
@@ -81,14 +95,14 @@ function getData(date) {
 
 // --- 新增訂單 ---
 function addOrder(date, order) {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = getSpreadsheet();
   const sheet = getOrCreateOrderSheet(ss, date);
   sheet.appendRow([order.id, order.name, order.itemName, order.price]);
 }
 
 // --- 刪除訂單 ---
 function deleteOrder(date, orderId) {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = getSpreadsheet();
   const sheet = ss.getSheetByName(date);
   if (!sheet) return;
 
@@ -106,14 +120,14 @@ function deleteOrder(date, orderId) {
 
 // --- 更新菜單圖片 ---
 function updateMenu(date, url, side) {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = getSpreadsheet();
   const settingsSheet = getOrCreateSettingsSheet(ss);
   setMenuUrl(settingsSheet, date, side || 'front', url);
 }
 
 // --- 清除指定日期訂單 ---
 function clearOrders(date) {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = getSpreadsheet();
   const sheet = ss.getSheetByName(date);
   if (sheet) {
     const lastRow = sheet.getLastRow();
@@ -125,7 +139,7 @@ function clearOrders(date) {
 
 // --- 清除所有資料(含菜單) ---
 function clearAll(date) {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = getSpreadsheet();
 
   // 刪除該日期的訂單 sheet
   const sheet = ss.getSheetByName(date);

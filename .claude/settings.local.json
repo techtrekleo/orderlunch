@@ -4,7 +4,12 @@
       "Bash(git init *)",
       "Bash(git add *)",
       "Bash(git commit -m ' *)",
-      "Bash(git config *)"
+      "Bash(git config *)",
+      "Bash(git remote *)",
+      "Bash(git branch *)",
+      "Bash(git push *)",
+      "Bash(curl -sL \"https://script.google.com/macros/s/AKfycbzZ9jNk8UrXT7R5AfD4IdGnAy5IUoEFDJAEEtx8gKsxLAD1b93RIIuODbgh9JiZz_9syg/exec?action=getData&date=2026-05-29\")",
+      "Bash(curl -sL \"https://script.google.com/macros/s/AKfycbxX1ZbSp7HCxKHXGHii04DCk2i6X12hCh3rVm7Uz72Tw0QCL3ks7g_XP7IU68s-Lz6Z4A/exec?action=getData&date=2026-05-29\")"
     ]
   }
 }
