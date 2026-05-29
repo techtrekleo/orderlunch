@@ -143,6 +143,17 @@ function clearAll(date) {
 
 // === 輔助函式 ===
 
+// Google Sheets 會把日期字串自動轉成 Date 物件，需要統一格式再比對
+function normalizeDate(value) {
+  if (value instanceof Date) {
+    var y = value.getFullYear();
+    var m = String(value.getMonth() + 1).padStart(2, '0');
+    var d = String(value.getDate()).padStart(2, '0');
+    return y + '-' + m + '-' + d;
+  }
+  return String(value);
+}
+
 function getOrCreateOrderSheet(ss, date) {
   var sheet = ss.getSheetByName(date);
   if (!sheet) {
@@ -157,6 +168,7 @@ function getOrCreateSettingsSheet(ss) {
   if (!sheet) {
     sheet = ss.insertSheet('設定');
     sheet.appendRow(['日期', '面', '網址']);
+    sheet.getRange('A:A').setNumberFormat('@');
   }
   return sheet;
 }
@@ -167,7 +179,7 @@ function getMenuUrl(settingsSheet, date, side) {
 
   const data = settingsSheet.getRange(2, 1, lastRow - 1, 3).getValues();
   for (var i = 0; i < data.length; i++) {
-    if (String(data[i][0]) === date && data[i][1] === side) {
+    if (normalizeDate(data[i][0]) === date && data[i][1] === side) {
       return data[i][2] || null;
     }
   }
@@ -179,7 +191,7 @@ function setMenuUrl(settingsSheet, date, side, url) {
   if (lastRow >= 2) {
     const data = settingsSheet.getRange(2, 1, lastRow - 1, 3).getValues();
     for (var i = 0; i < data.length; i++) {
-      if (String(data[i][0]) === date && data[i][1] === side) {
+      if (normalizeDate(data[i][0]) === date && data[i][1] === side) {
         settingsSheet.getRange(i + 2, 3).setValue(url);
         return;
       }
@@ -194,7 +206,7 @@ function clearMenuUrls(settingsSheet, date) {
 
   const data = settingsSheet.getRange(2, 1, lastRow - 1, 3).getValues();
   for (var i = data.length - 1; i >= 0; i--) {
-    if (String(data[i][0]) === date) {
+    if (normalizeDate(data[i][0]) === date) {
       settingsSheet.deleteRow(i + 2);
     }
   }
