@@ -126,20 +126,16 @@
             border-radius: 5px;
             margin-bottom: 20px;
         }
-        /* 讓 datalist 的建議清單更明顯 */
         input[list] {
             position: relative;
         }
-        /* 讓 select 和 input 高度一致 */
         select {
-            height: 40px; /* 根據 padding 和 border 調整 */
+            height: 40px;
         }
-        /* 讓 h2 標題之間有更多空間 */
         .summary-section h2 {
             margin-top: 40px;
             font-size: 1.5rem;
         }
-        /* 新增：手機版快捷按鈕與單選項的樣式 */
         .radio-group {
             display: flex;
             gap: 15px;
@@ -205,7 +201,6 @@
         .date-nav .today-btn:hover {
             background: #545b62;
         }
-        /* 查看歷史日期時的提示橫幅 */
         .past-date-banner {
             display: none;
             background: #fff3cd;
@@ -275,7 +270,7 @@
             <button class="today-btn" onclick="goToToday()">今天</button>
         </div>
         <div class="past-date-banner" id="past-date-banner">
-            📅 目前查看的是歷史訂單，如需下訂請切換回今天。
+            📅 目前查看的是歷史訂單，如需下訂請切換回今天或未來日期。
         </div>
 
         <div class="admin-section">
@@ -321,12 +316,12 @@
             <select id="user-select">
                 <!-- 員工名單會由 JS 動態載入 -->
             </select>
-            
+
             <label for="item-name">想吃的餐點：</label>
-            <div id="meal-chips"></div> <!-- 手機版快捷按鈕會顯示在這裡 -->
+            <div id="meal-chips"></div>
             <input type="text" id="item-name" list="meal-list" placeholder="請點選上方按鈕或自行輸入">
             <datalist id="meal-list"></datalist>
-            
+
             <label>飯量調整 (非必選)：</label>
             <div class="radio-group">
                 <label><input type="radio" name="rice-portion" value="正常"> 正常</label>
@@ -338,7 +333,7 @@
 
             <label for="item-price">價格：</label>
             <input type="number" id="item-price" placeholder="請輸入金額" min="0">
-            
+
             <button onclick="addOrder()">下訂單</button>
         </div>
 
@@ -354,7 +349,6 @@
                     </tr>
                 </thead>
                 <tbody id="order-list">
-                    <!-- 訂單會顯示在這裡 -->
                 </tbody>
             </table>
 
@@ -367,7 +361,6 @@
                     </tr>
                 </thead>
                 <tbody id="meal-summary-body">
-                    <!-- 餐點統計會顯示在這裡 -->
                 </tbody>
             </table>
             <div id="total-summary">
@@ -380,7 +373,6 @@
     </div>
 
     <script>
-        // --- 替換為你的 Google Apps Script 部署網址 ---
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxX1ZbSp7HCxKHXGHii04DCk2i6X12hCh3rVm7Uz72Tw0QCL3ks7g_XP7IU68s-Lz6Z4A/exec';
         const IMGBB_API_KEY = '1d26bf0023e3fb092ef36c37e36c5b54';
 
@@ -401,12 +393,11 @@
             picker.value = currentDate;
 
             const today = getTodayString();
-            const isPast = currentDate < today;   // YYYY-MM-DD 字串可直接比較大小
+            const isPast = currentDate < today;
             const isFuture = currentDate > today;
             const banner = document.getElementById('past-date-banner');
             const orderSection = document.querySelector('.order-section');
 
-            // 過去日期：唯讀，顯示歷史提示；今天/未來：可訂餐
             if (isPast) {
                 banner.style.display = 'block';
                 banner.innerHTML = '📅 目前查看的是歷史訂單，如需下訂請切換回今天或未來日期。';
@@ -446,7 +437,6 @@
             fetchAllData();
         }
 
-        // 頁面載入時，初始化系統
         window.onload = function() {
             populateEmployeeList();
             updateDateUI();
@@ -457,7 +447,7 @@
             fetchAllData();
         };
 
-        // --- 資料管理 (連線至 Google Sheets) ---
+        // --- 資料管理 ---
 
         const employeeList = [
             "羅友志老師", "詹永任老師", "張瑋珊助教", "楊文華",
@@ -468,9 +458,8 @@
 
         let menuImageUrlFront = null;
         let menuImageUrlBack = null;
-        let orders = []; // { id: 123, name: '王大明', itemName: '排骨飯', price: 100 }
+        let orders = [];
 
-        // 讀取所有資料 (GET)
         async function fetchAllData() {
             const orderList = document.getElementById('order-list');
             orderList.innerHTML = '<tr><td colspan="4" style="text-align: center;">資料同步中，請稍候...</td></tr>';
@@ -493,7 +482,6 @@
             }
         }
 
-        // 發送指令至後端 (POST)
         async function sendCommand(action, data) {
             try {
                 await fetch(SCRIPT_URL, {
@@ -501,7 +489,7 @@
                     body: JSON.stringify({ action, data, date: currentDate }),
                     redirect: 'follow'
                 });
-                await fetchAllData(); // 操作完成後重新讀取最新資料
+                await fetchAllData();
             } catch (error) {
                 console.error('Command error:', error);
                 alert('資料同步失敗，請檢查網路連線！');
@@ -571,22 +559,12 @@
             const itemPriceInput = document.getElementById('item-price').value.trim();
             const itemPrice = parseInt(itemPriceInput, 10);
 
-            if (!userName) {
-                alert('請選擇您的姓名！');
-                return;
+            if (!userName) { alert('請選擇您的姓名！'); return; }
+            if (!itemName) { alert('請輸入想吃的餐點名稱！'); return; }
+            if (itemPriceInput === '' || isNaN(itemPrice) || itemPrice < 0) {
+                alert('請輸入正確的價格！'); return;
             }
 
-            if (!itemName) {
-                alert('請輸入想吃的餐點名稱！');
-                return;
-            }
-
-            if (itemPriceInput === '' || isNaN(itemPrice) || itemPrice < 0) { // Allow 0 price
-                alert('請輸入正確的價格！');
-                return;
-            }
-
-            // 將飯量和備註組合進餐點名稱，免改後端欄位
             let finalItemName = itemName;
             if (ricePortion && ricePortion.value !== '正常') {
                 finalItemName += ` (${ricePortion.value})`;
@@ -596,7 +574,7 @@
             }
 
             const newOrder = {
-                id: Date.now().toString(), // 使用時間戳作為唯一ID
+                id: Date.now().toString(),
                 name: userName,
                 itemName: finalItemName,
                 price: itemPrice
@@ -609,20 +587,18 @@
             btn.disabled = false;
             btn.textContent = '下訂單';
 
-            // 清空餐點相關欄位方便下一位同事填寫，保留姓名
             document.getElementById('item-name').value = '';
             document.getElementById('item-price').value = '';
             document.getElementById('item-remark').value = '';
             if (ricePortion) ricePortion.checked = false;
         }
-        
+
         async function deleteOrder(orderId) {
             const pwd = prompt('請輸入密碼：');
             if (pwd !== '10') {
                 alert('請洽大姐刪除訂單');
                 return;
             }
-
             if (confirm('確定要刪除這筆訂單嗎？')) {
                 await sendCommand('deleteOrder', { id: orderId });
             }
@@ -631,6 +607,12 @@
         // --- 畫面渲染 ---
 
         function togglePaid(name, checkbox) {
+            const pwd = prompt('請輸入密碼才可變更繳費狀態：');
+            if (pwd !== '10') {
+                alert('密碼錯誤');
+                checkbox.checked = !checkbox.checked; // 還原勾選狀態
+                return;
+            }
             const storageKey = `paid_${currentDate}_${name}`;
             const row = document.getElementById(`row-${name}`);
             if (checkbox.checked) {
@@ -653,10 +635,8 @@
             const hasBack = !!menuImageUrlBack;
 
             container.style.display = (hasFront || hasBack) ? 'block' : 'none';
-
             frontWrapper.style.display = hasFront ? 'block' : 'none';
             frontImg.src = hasFront ? menuImageUrlFront : '';
-
             backWrapper.style.display = hasBack ? 'block' : 'none';
             backImg.src = hasBack ? menuImageUrlBack : '';
         }
@@ -668,23 +648,19 @@
             const mealListDatalist = document.getElementById('meal-list');
             const mealSummaryBody = document.getElementById('meal-summary-body');
             const mealChipsContainer = document.getElementById('meal-chips');
-            
-            // 清空上次渲染的結果
+
             orderList.innerHTML = '';
             personalTotalsEl.innerHTML = '';
             mealListDatalist.innerHTML = '';
             mealSummaryBody.innerHTML = '';
             if (mealChipsContainer) mealChipsContainer.innerHTML = '';
 
-            // 資料彙總
             let grandTotal = 0;
             const personalData = {};
             const mealCounts = {};
             const baseMeals = new Set();
 
-            // 遍歷所有訂單，渲染列表並計算統計資料
             orders.forEach(order => {
-                // 渲染訂單列表
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${order.name || 'N/A'}</td>
@@ -694,26 +670,21 @@
                 `;
                 orderList.appendChild(row);
 
-                // 彙總統計資料
                 grandTotal += order.price;
-                
+
                 if (!personalData[order.name]) {
                     personalData[order.name] = { total: 0, items: [] };
                 }
                 personalData[order.name].total += order.price;
                 personalData[order.name].items.push(order.itemName);
-                
+
                 mealCounts[order.itemName] = (mealCounts[order.itemName] || 0) + 1;
-                
-                // 萃取原始餐點名稱 (移除括號後的備註)，用於快捷按鈕
+
                 let baseName = String(order.itemName || '');
                 baseName = baseName.split(' (')[0].split(' [')[0].trim();
-                if (baseName) {
-                    baseMeals.add(baseName);
-                }
+                if (baseName) baseMeals.add(baseName);
             });
 
-            // 渲染個人應付金額 (按照員工名單順序排列)
             const renderPersonRow = (name) => {
                 const info = personalData[name];
                 const storageKey = `paid_${currentDate}_${name}`;
@@ -737,12 +708,10 @@
             employeeList.forEach(name => {
                 if (personalData[name]) renderPersonRow(name);
             });
-            // 處理名單外自行輸入或舊資料的名字
             for (const name in personalData) {
                 if (!employeeList.includes(name)) renderPersonRow(name);
             }
 
-            // 渲染餐點統計表
             for (const mealName in mealCounts) {
                 const row = document.createElement('tr');
                 row.innerHTML = `
@@ -752,21 +721,17 @@
                 mealSummaryBody.appendChild(row);
             }
 
-            // 更新餐點建議清單 (datalist 與 快捷按鈕)
             baseMeals.forEach(mealName => {
-                // 給電腦版用的 datalist
                 const option = document.createElement('option');
                 option.value = mealName;
                 mealListDatalist.appendChild(option);
 
-                // 給手機版用的快捷按鈕 (Chips)
                 if (mealChipsContainer) {
                     const chip = document.createElement('span');
                     chip.className = 'chip';
                     chip.textContent = mealName;
                     chip.onclick = () => {
                         document.getElementById('item-name').value = mealName;
-                        // 嘗試自動帶入該餐點最新的價格
                         const previousOrder = [...orders].reverse().find(o => o.itemName && String(o.itemName).startsWith(mealName));
                         if (previousOrder) {
                             document.getElementById('item-price').value = previousOrder.price;
@@ -776,7 +741,6 @@
                 }
             });
 
-            // 更新總計金額
             grandTotalEl.textContent = grandTotal;
         }
     </script>
